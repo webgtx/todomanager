@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+version = "0.0.1"
+name = "todomanager"
+description = "Manage your daily tasks in the terminal with the super readable command-line interface design"
+authors = [{ name="Alex Zolotarov", email="alex@zolotarov.me" }]
+readme = "README.md"
+dependencies = [
+  "pyyaml",
+  "rich",
+  "fire"
+]
+requires-python = ">=3.9"
+
+[project.scripts]
+todo = "todo:main"
