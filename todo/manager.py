@@ -90,7 +90,6 @@ class ToDoManager:
         "List all the tasks for the current day"
         self._load_daylog()
         display_content = str()
-        #print(f"\n\t[bold yelllow]{self.daylog_data['date']}[/]")
         for idx, task in enumerate(self.daylog_data["tasks"]):
             display_content += f"[bold]{idx}. ({'[green]x[/]' if task['status'] else '[red]=[/]'})[/] {task['title']}\n"
 
@@ -99,6 +98,12 @@ class ToDoManager:
                 title=f"[bold yelllow]{self.daylog_data['date']}[/]",
                 padding=(1, 5)
             ))
+
+    def rename(self, item: int, name: str):
+        "Rename the task title"
+        self._load_daylog()
+        self.daylog_data["tasks"][item]["title"] = name
+        self._write_daylog()
 
     def select(self, identifier: str = ""):
         "Select any daylog from the journal"
