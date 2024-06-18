@@ -19,7 +19,6 @@ class ToDoManager:
 
         if not self.path.is_dir or not self.daylog_file.exists():
             self.path.mkdir(exist_ok=1)
-            self.daylog_file.touch(exist_ok=1)
 
         if not self.config_path.is_dir or not self.config_file.exists():
             self.config_path.mkdir(exist_ok=1)
@@ -28,6 +27,7 @@ class ToDoManager:
 
         self._init_daylog()
         self._import_config()
+        self._load_daylog()
 
     def _write_config(self):
         with open(self.config_file, "w") as f:
@@ -60,13 +60,13 @@ class ToDoManager:
 
     def add(self, title: str):
         "Add a new task to the to-do list."
-        self._load_daylog()
+        
         self.daylog_data["tasks"].append({"status": False, "title": title})
         self._write_daylog()
 
     def check(self, items):
         "Check the item"
-        self._load_daylog()
+        
         if type(items) == tuple:
             for idx in items:
                 self.daylog_data["tasks"][idx]["status"] = not self.daylog_data["tasks"][idx]["status"]
@@ -77,7 +77,7 @@ class ToDoManager:
 
     def delete(self, items):
         "Delete the item"
-        self._load_daylog()
+        
         if type(items) == tuple:
             for idx in items:
                 del self.daylog_data["tasks"][idx]
@@ -88,7 +88,7 @@ class ToDoManager:
 
     def list(self):
         "List all the tasks for the current day"
-        self._load_daylog()
+        
         display_content = str()
         for idx, task in enumerate(self.daylog_data["tasks"]):
             display_content += f"[bold]{idx}. ({'[green]x[/]' if task['status'] else '[red]=[/]'})[/] {task['title']}\n"
@@ -101,13 +101,12 @@ class ToDoManager:
 
     def rename(self, item: int, name: str):
         "Rename the task title"
-        self._load_daylog()
+
         self.daylog_data["tasks"][item]["title"] = name
         self._write_daylog()
 
     def select(self, identifier: str = ""):
         "Select any daylog from the journal"
-        self._import_config()
         match identifier.lower():
             case "today":
                 self.daylog_file = self.path / f"{self.today}.yaml"
@@ -116,3 +115,30 @@ class ToDoManager:
                 curses.endwin()
         self._write_config()
         print(f"[bold]Previously selected daylog was changed for:[bold] [red]{self.daylog_file.name}")
+
+    def move(self, item: int, where: str = ""):
+        "Move tasks between daylogs"
+        destination_data = dict()
+        destination_path = str()
+        match where.lower():
+            case "today":
+                destination_path = self.path / f"{self.today}.yaml"
+            case "":
+                destination_path = self.path / Selector([f for f in self.path.iterdir()]).select()
+
+        with open(destination_path, "r") as f:
+            destination_data = yaml.safe_load(f)
+            try:
+                destination_data["tasks"].append(self.daylog_data["tasks"][item])
+                self.delete(item)
+            except IndexError:
+                print("[bold red]You out of scope, specify existed items only")
+
+        with open(destination_path, "w") as f:
+            f.write(yaml.dump(destination_data))
+
+
+
+
+
+
