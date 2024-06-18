@@ -3,6 +3,8 @@ from datetime import datetime
 from rich.prompt import Prompt
 from rich.panel import Panel
 from rich import print
+from todo.selector import Selector
+import curses
 import yaml
 
 class ToDoManager:
@@ -77,3 +79,13 @@ class ToDoManager:
                 padding=(1, 5)
             ))
 
+    def select(self, identifier: str = ""):
+        "Select any daylog from the journal"
+        match identifier.lower():
+            case "today":
+                self.daylog_file = self.path / f"{self.today}.yaml"
+            case "":
+                self.daylog_file = Selector([f for f in self.path.iterdir()]).select()
+                curses.endwin()
+
+        print(f"[bold]Previously selected daylog was changed for:[bold] [red]{self.daylog_file.name}")
