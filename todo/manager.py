@@ -36,11 +36,13 @@ class ToDoManager:
             f.write(yaml.dump(self.daylog_data))
 
     def add(self, title: str):
+        "Add a new task to the to-do list."
         self._load_daylog()
         self.daylog_data["tasks"].append({"status": False, "title": title})
         self._write_daylog()
 
     def check(self, items):
+        "Check the item"
         self._load_daylog()
         if type(items) == tuple:
             for idx in items:
@@ -51,6 +53,7 @@ class ToDoManager:
         self._write_daylog()
 
     def delete(self, items):
+        "Delete the item"
         self._load_daylog()
         if type(items) == tuple:
             for idx in items:
@@ -61,6 +64,7 @@ class ToDoManager:
         self._write_daylog()
 
     def list(self):
+        "List all the tasks for the current day"
         self._load_daylog()
         display_content = str()
         #print(f"\n\t[bold yelllow]{self.daylog_data['date']}[/]")
