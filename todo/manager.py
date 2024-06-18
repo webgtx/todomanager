@@ -10,18 +10,39 @@ import yaml
 class ToDoManager:
     def __init__(self):
         self.path = Path.home() / "Documents" / "todo"
+        self.config_path = Path.home() / ".config" / "todomanager"
+        self.config_file = self.config_path / "config.yaml"
         self.date_format = "%Y-%m-%d"
         self.today = datetime.now().strftime(self.date_format)
         self.daylog_file = self.path / f"{self.today}.yaml"
         self.daylog_data = dict()
-        self._init_daylog()
 
-        if not self.path.is_dir:
+        if not self.path.is_dir or not self.daylog_file.exists():
             self.path.mkdir(exist_ok=1)
+            self.daylog_file.touch(exist_ok=1)
+
+        if not self.config_path.is_dir or not self.config_file.exists():
+            self.config_path.mkdir(exist_ok=1)
+            self.config_file.touch(exist_ok=1)
+            self._write_config()
+
+        self._init_daylog()
+        self._import_config()
+
+    def _write_config(self):
+        with open(self.config_file, "w") as f:
+            f.write(yaml.dump({
+                "daylog_file": str(self.daylog_file)
+            }))
+
+    def _import_config(self):
+        if self.config_file.exists():
+            with open(self.config_file) as f:
+                config = yaml.safe_load(f)
+                self.daylog_file = config["daylog_file"]
 
     def _init_daylog(self):
         if not self.daylog_file.exists():
-            self.daylog_file.touch()
             with open(self.daylog_file, "w") as f:
                 f.write(yaml.dump({
                     "date": self.today,
@@ -81,11 +102,12 @@ class ToDoManager:
 
     def select(self, identifier: str = ""):
         "Select any daylog from the journal"
+        self._import_config()
         match identifier.lower():
             case "today":
                 self.daylog_file = self.path / f"{self.today}.yaml"
             case "":
                 self.daylog_file = Selector([f for f in self.path.iterdir()]).select()
                 curses.endwin()
-
+        self._write_config()
         print(f"[bold]Previously selected daylog was changed for:[bold] [red]{self.daylog_file.name}")
